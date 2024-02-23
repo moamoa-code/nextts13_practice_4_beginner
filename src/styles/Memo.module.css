@@ -1,0 +1,14 @@
+.box {
+  border-radius: 5px;
+  padding: 20px;
+  border: 1px solid #ddd;
+  margin-bottom: 20px;
+}
+.inputs {
+  display: block;
+  box-sizing: border-box;
+  border-radius: 5px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  width: 100%;
+}
