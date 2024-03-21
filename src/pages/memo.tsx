@@ -1,26 +1,46 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import styles from "@/styles/Memo.module.css";
 import axios from "axios";
-
-export interface Memo {
-  id: string;
-  title: string;
-  content: string;
-  createAt: string;
-}
+import { MemoType } from "@/interface/memo";
+import MemoCard from "@/components/MemoCard";
 
 export default function Memo() {
   const [memoTitleInput, setMemoTitleInput] = useState<string>("");
   const [memoContentInput, setMemoContentInput] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [memoList, setMemoList] = useState<Memo[]>([]);
+  const [memoList, setMemoList] = useState<MemoType[]>([]);
   const [updateTargetId, setUpdateTargetId] = useState<string>("");
+  const [pageNum, setPageNum] = useState<number>(1);
+
+  // useEffect(() => {
+  //   window.addEventListener("scroll", getScroll);
+  //   return () => {
+  //     window.removeEventListener("scroll", getScroll);
+  //   };
+  // }, [pageNum]);
 
   useEffect(() => {
-    getMemoList();
-  }, []);
+    getMemoList(pageNum);
+  }, [pageNum]);
 
-  const onUpdateMode = (memo: Memo) => () => {
+  // const pagePlus = useCallback(() => {
+  //   const newPageNum = pageNum + 1;
+  //   console.log("end", newPageNum);
+  //   setPageNum(newPageNum);
+  // }, [pageNum]);
+
+  // const getScroll = () => {
+  //   let scrollHeight = document.documentElement.scrollHeight;
+  //   let scrollTop = document.documentElement.scrollTop;
+  //   let clientHeight = document.documentElement.clientHeight;
+
+  //   if (scrollTop + clientHeight + 200 >= scrollHeight) {
+  //     console.log("스크롤끝", scrollHeight);
+  //     pagePlus();
+  //   }
+  // };
+
+  const onUpdateMode = (memo: MemoType) => () => {
     setUpdateTargetId(memo.id);
     setMemoTitleInput(memo.title);
     setMemoContentInput(memo.content);
@@ -66,13 +86,19 @@ export default function Memo() {
       });
   };
 
-  const getMemoList = () => {
+  const getMemoList = (page?: number) => {
     setLoading(true);
     axios
-      .get("/api/memo")
+      .get(`/api/memo?page=${page ?? 1}`)
       .then((response) => {
-        console.log(response);
-        setMemoList(response.data);
+        console.log("memoList", memoList);
+        const newData = response.data;
+        // const oldData = JSON.parse(JSON.stringify(memoList));
+        const resultData = [...newData];
+        // console.log("page", page);
+        // console.log("new, old", newData, oldData);
+        // console.log("resultData", resultData);
+        setMemoList(resultData);
       })
       .catch((error) => {
         console.error(error);
@@ -124,7 +150,8 @@ export default function Memo() {
   return (
     <>
       <main>
-        <h1>아무렇게나 메모앱</h1>
+        <h1>아무렇게나 메모앱 {memoList?.length}</h1>
+        <div>{JSON.stringify(memoList)}</div>
         <div className={styles.box}>
           <form>
             <input
@@ -184,15 +211,21 @@ export default function Memo() {
         <hr />
         {loading && <div>로딩중...</div>}
         {memoList &&
-          memoList?.map((memo: Memo, index) => {
+          memoList?.map((memo: MemoType, index) => {
             return (
-              <div key={index} className={styles.box}>
-                <h3>{memo.title}</h3>
-                <p>{memo.content}</p>
-                <button onClick={onUpdateMode(memo)}>수정</button>
-                <br />
-                <button onClick={onDeleteMemo(memo.id)}>삭제</button>
-              </div>
+              // <div key={index} className={styles.box}>
+              //   <h3>{memo.title}</h3>
+              //   <p>{memo.content}</p>
+              //   <button onClick={onUpdateMode(memo)}>수정</button>
+              //   <br />
+              //   <button onClick={onDeleteMemo(memo.id)}>삭제</button>
+              // </div>
+              <MemoCard
+                memoData={memo}
+                key={index}
+                onUpdateMode={onUpdateMode}
+                onDeleteMemo={onDeleteMemo}
+              />
             );
           })}
       </main>
